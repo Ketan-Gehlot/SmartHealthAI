@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predict Disease | SmartHealthAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header>
+    <h1>Disease Prediction</h1>
+</header>
+
+<nav>
+    <a href="/">Home</a>
+    <a href="/predict">Predict</a>
+    <a href="/dashboard">Dashboard</a>
+</nav>
+
+<section class="container">
+
+    <label>Select Disease</label>
+    <select id="diseaseSelect">
+        <option value="">-- Select Disease --</option>
+        <option value="diabetes">Diabetes</option>
+        <option value="liver">Liver Disease</option>
+        <option value="cancer">Breast Cancer</option>
+        <option value="parkinsons">Parkinson's</option>
+    </select>
+
+    <form id="predictionForm"></form>
+
+    <button onclick="submitPrediction()" class="btn">Predict</button>
+
+    <div id="resultBox"></div>
+
+</section>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Liver Disease Prediction</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Liver Disease Prediction System</h1>
+
+    <form method="POST">
+        {% for feature in features %}
+        <label>{{ feature.replace("_", " ").upper() }}</label>
+        <input type="number" step="any" name="{{ feature }}" required>
+        {% endfor %}
+
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction %}
+        <div class="result">
+            <h2>{{ prediction }}</h2>
+            <p>Risk Probability: {{ probability }}%</p>
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

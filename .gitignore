@@ -1,0 +1,35 @@
+﻿# Virtual environments
+venv/
+myenv/
+.venv/
+
+# Datasets (large)
+data/
+*.csv
+*.xlsx
+*.xls
+*.zip
+*.rar
+
+# ML models (large)
+*.pkl
+*.h5
+*.joblib
+
+# Database
+database/
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs & temp
+*.log
+tempCodeRunnerFile.py
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
