@@ -1,40 +1,752 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard | SmartHealthAI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dashboard | SmartHealthAI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
-<header>
-    <h1>Prediction Dashboard</h1>
-</header>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="url(#logoGradient)" />
+                    <path d="M20 10L20 30M20 20L30 20M20 20L10 20" stroke="white" stroke-width="3"
+                        stroke-linecap="round" />
+                    <circle cx="20" cy="20" r="3" fill="white" />
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#00d4ff" />
+                            <stop offset="100%" stop-color="#0066ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="logo-text">Smart<span class="logo-highlight">Health</span>AI</span>
+            </div>
 
-<nav>
-    <a href="/">Home</a>
-    <a href="/predict">Predict</a>
-    <a href="/dashboard">Dashboard</a>
-</nav>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
 
-<section class="container">
-    <table>
-        <tr>
-            <th>Disease</th>
-            <th>Result</th>
-            <th>Confidence</th>
-            <th>Time</th>
-        </tr>
-        {% for row in records %}
-        <tr>
-            <td>{{ row['disease'] }}</td>
-            <td>{{ row['result'] }}</td>
-            <td>{{ row['confidence'] }}%</td>
-            <td>{{ row['created_at'] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-</section>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/predict" class="nav-link">Diabetes Prediction</a></li>
+                <li><a href="/liver" class="nav-link">Liver Disease Prediction</a></li>
+                <li><a href="/cancer" class="nav-link">Breast Cancer</a></li>
+                <li><a href="/dashboard" class="nav-link nav-link-cta active">AI Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Dashboard Section -->
+    <section class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="dashboard-title-section">
+                <h1>Prediction Dashboard</h1>
+                <p class="dashboard-subtitle">Complete history of all your health risk assessments and predictions</p>
+            </div>
+
+            <div class="dashboard-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-value">{{ records|length }}</div>
+                        <div class="stat-card-label">Total Predictions</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-value">
+                            {% set ns = namespace(low=0, high=0) %}
+                            {% for row in records %}
+                            {% if row['result'] == 'Liver Disease Detected' or row['result'] == 'Diabetic' or
+                            row['result'] == 'Malignant' or 'Disease' in row['result'] and 'No ' not in row['result'] %}
+                            {% set ns.high = ns.high + 1 %}
+                            {% else %}
+                            {% set ns.low = ns.low + 1 %}
+                            {% endif %}
+                            {% endfor %}
+                            {{ ns.low }}
+                        </div>
+                        <div class="stat-card-label">Low Risk Results</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 8v4M12 16h.01" />
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-value">
+                            {{ ns.high }}
+                        </div>
+                        <div class="stat-card-label">High Risk Results</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <div class="stat-card-value">
+                            {% if records %}
+                            {{ records[0]['created_at'].split()[0] }}
+                            {% else %}
+                            --
+                            {% endif %}
+                        </div>
+                        <div class="stat-card-label">Last Prediction</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-filters">
+            <div class="filter-group">
+                <label for="diseaseFilter">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd"
+                            d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" />
+                    </svg>
+                    Filter by Disease
+                </label>
+                <select id="diseaseFilter" class="filter-select">
+                    <option value="all">All Diseases</option>
+                    <option value="diabetes">Diabetes</option>
+                    <option value="liver">Liver Disease</option>
+                    <option value="cancer">Breast Cancer</option>
+                    <option value="parkinsons">Parkinson's</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="resultFilter">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" />
+                    </svg>
+                    Filter by Result
+                </label>
+                <select id="resultFilter" class="filter-select">
+                    <option value="all">All Results</option>
+                    <option value="Low Risk">Low Risk</option>
+                    <option value="High Risk">High Risk</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="dashboard-table-container">
+            <div class="table-header">
+                <h2>Prediction History</h2>
+                <button class="btn btn-secondary" onclick="window.print()">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" />
+                    </svg>
+                    <span>Export</span>
+                </button>
+            </div>
+
+            <div class="table-wrapper">
+                {% if records %}
+                <table class="modern-table" id="predictionsTable">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="th-content">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fill-rule="evenodd"
+                                            d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
+                                    </svg>
+                                    Disease Type
+                                </div>
+                            </th>
+                            <th>
+                                <div class="th-content">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                                    </svg>
+                                    Result & Normal Range
+                                </div>
+                            </th>
+                            <th>
+                                <div class="th-content">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" />
+                                    </svg>
+                                    Confidence
+                                </div>
+                            </th>
+                            <th>
+                                <div class="th-content">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" />
+                                    </svg>
+                                    Date & Time
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in records %}
+                        <tr class="table-row" data-disease="{{ row['disease']|lower }}"
+                            data-result="{{ row['result'] }}">
+                            <td>
+                                <div class="disease-cell">
+                                    <span class="disease-badge {{ row['disease']|lower }}-badge">
+                                        {% if 'Diabetes' in row['disease'] %}
+                                        🩸 Diabetes
+                                        {% elif 'Liver' in row['disease'] %}
+                                        🫀 Liver Disease
+                                        {% elif 'Breast' in row['disease'] or 'Cancer' in row['disease'] %}
+                                        🎗️ Breast Cancer
+                                        {% elif 'Parkinson' in row['disease'] %}
+                                        🧠 Parkinson's
+                                        {% else %}
+                                        {{ row['disease']|title }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="result-cell">
+                                    {% if row['result'] == 'Liver Disease Detected' or row['result'] == 'Diabetic' or
+                                    row['result'] == 'Malignant' or 'Disease' in row['result'] and 'No ' not in
+                                    row['result'] %}
+                                    <span class="result-badge high-risk">
+                                        <svg viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                                        </svg>
+                                        {{ row['result'] }}
+                                        <br><span style="font-size: 0.75rem; opacity: 0.9;">
+                                            {% if 'Diabetes' in row['disease'] %}
+                                            Normal: <100 mg/dL Fasting {% elif 'Liver' in row['disease'] %} Normal:
+                                                Bilirubin <1.2 mg/dL {% elif 'Breast' in row['disease'] or 'Cancer' in
+                                                row['disease'] %} Benign: Low Risk (Normal) {% elif 'Parkinson' in
+                                                row['disease'] %} Normal: Low Motor Fluctuation {% endif %} </span>
+                                        </span>
+                                        {% else %}
+                                        <span class="result-badge low-risk">
+                                            <svg viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                                            </svg>
+                                            {{ row['result'] }}
+                                            <br><span style="font-size: 0.75rem; opacity: 0.9;">
+                                                {% if 'Diabetes' in row['disease'] %}
+                                                Normal: <100 mg/dL Fasting {% elif 'Liver' in row['disease'] %} Normal:
+                                                    Bilirubin <1.2 mg/dL {% elif 'Breast' in row['disease'] or 'Cancer'
+                                                    in row['disease'] %} Benign: Low Risk (Normal) {% elif 'Parkinson'
+                                                    in row['disease'] %} Normal: Low Motor Fluctuation {% endif %}
+                                                    </span>
+                                            </span>
+                                            {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="confidence-cell">
+                                    <div class="confidence-bar-container">
+                                        <div class="confidence-bar" style="width: {{ row['confidence'] }}%"></div>
+                                    </div>
+                                    <span class="confidence-text">{{ row['confidence'] }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="datetime-cell">
+                                    <div class="datetime-date">{{ row['created_at'].split()[0] }}</div>
+                                    <div class="datetime-time">{{ row['created_at'].split()[1][:5] }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <svg viewBox="0 0 120 120" fill="none">
+                        <circle cx="60" cy="60" r="50" stroke="currentColor" stroke-width="2" opacity="0.2" />
+                        <path d="M40 60h40M60 40v40" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                            opacity="0.3" />
+                    </svg>
+                    <h3>No Predictions Yet</h3>
+                    <p>Start your first health risk assessment to see results here</p>
+                    <a href="/predict" class="btn btn-primary">
+                        <span>Start Prediction</span>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 10h10M10 5l5 5-5 5" />
+                        </svg>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <style>
+        /* Dashboard specific styles */
+        .dashboard-container {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .dashboard-title-section {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-subtitle {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+            margin-top: 0.5rem;
+        }
+
+        .dashboard-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: rgba(0, 102, 255, 0.1);
+        }
+
+        .stat-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-card-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .stat-card-icon.blue {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.2));
+            color: var(--diabetes-blue);
+        }
+
+        .stat-card-icon.green {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.2));
+            color: var(--liver-green);
+        }
+
+        .stat-card-icon.orange {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.2));
+            color: #f97316;
+        }
+
+        .stat-card-icon.purple {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.2));
+            color: var(--parkinsons-purple);
+        }
+
+        .stat-card-value {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        /* Filters */
+        .dashboard-filters {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .filter-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .filter-group label svg {
+            width: 16px;
+            height: 16px;
+            color: var(--primary-blue);
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
+        }
+
+        /* Table Container */
+        .dashboard-table-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .table-header h2 {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--gray-900);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        /* Modern Table */
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .modern-table thead {
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-blue));
+        }
+
+        .modern-table th {
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            color: white;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .th-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .th-content svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.9;
+        }
+
+        .modern-table tbody tr {
+            transition: all var(--transition-fast);
+        }
+
+        .modern-table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .modern-table td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Table Cells */
+        .disease-cell,
+        .result-cell,
+        .confidence-cell,
+        .datetime-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .disease-badge {
+            display: inline-flex;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .diabetes-badge {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.2));
+            color: var(--diabetes-dark);
+        }
+
+        .liver-badge {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.2));
+            color: var(--liver-dark);
+        }
+
+        .cancer-badge {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(219, 39, 119, 0.2));
+            color: var(--cancer-dark);
+        }
+
+        .parkinsons-badge {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.2));
+            color: var(--parkinsons-dark);
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .result-badge svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .high-risk {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.2));
+            color: #dc2626;
+        }
+
+        .low-risk {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.2));
+            color: var(--liver-dark);
+        }
+
+        .confidence-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .confidence-bar-container {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        .confidence-text {
+            font-weight: 700;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+        }
+
+        .datetime-cell {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .datetime-date {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .datetime-time {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            color: var(--gray-300);
+        }
+
+        .empty-state h3 {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-filters {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                min-width: 100%;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .table-header .btn {
+                width: 100%;
+            }
+
+            .modern-table th,
+            .modern-table td {
+                padding: 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Navbar functionality
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.pageYOffset > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Table filtering
+        const diseaseFilter = document.getElementById('diseaseFilter');
+        const resultFilter = document.getElementById('resultFilter');
+        const tableRows = document.querySelectorAll('.table-row');
+
+        function filterTable() {
+            const diseaseValue = diseaseFilter.value.toLowerCase();
+            const resultValue = resultFilter.value;
+
+            tableRows.forEach(row => {
+                const disease = row.dataset.disease;
+                const result = row.dataset.result;
+
+                const diseaseMatch = diseaseValue === 'all' || disease === diseaseValue;
+                const resultMatch = resultValue === 'all' || result === resultValue;
+
+                if (diseaseMatch && resultMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        if (diseaseFilter && resultFilter) {
+            diseaseFilter.addEventListener('change', filterTable);
+            resultFilter.addEventListener('change', filterTable);
+        }
+    </script>
 
 </body>
+
 </html>

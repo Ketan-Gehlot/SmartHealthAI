@@ -22,7 +22,7 @@ import xgboost as xgb  # Install via: pip install xgboost
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "liver_train.csv")
-MODEL_PATH = os.path.join(BASE_DIR, "models", "liver_automl.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "models", "automl_models", "liver_automl.pkl")
 
 os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
 
@@ -91,8 +91,9 @@ COLUMN_MAP = {
     "sgot_aspartate_aminotransferase": "ast",  # Maps to 'ast'
     "total_protiens": "total_protein",  # Maps to 'total_protein'
     "alb_albumin": "albumin",  # Maps to 'albumin'
-    "a_g_ratio_albumin_and_globulin_ratio": "albumin_globulin_ratio",  # Optional, if needed
-    "result": "label"  # Maps to 'label'
+    "a_g_ratio_albumin_and_globulin_ratio": "albumin_globulin_ratio",
+    "result": "label",
+    "alkaline_phosphotase": "alp"
 }
 
 df.rename(columns=COLUMN_MAP, inplace=True)
@@ -125,13 +126,20 @@ TARGET = "label"
 # CLEAN DATA
 # ============================================================
 
+# Ensure expected columns exist
+missing_cols = [c for c in FEATURES if c not in df.columns]
+if missing_cols:
+    print(f"[ERROR] Missing columns: {missing_cols}")
+    print(f"Available: {df.columns.tolist()}")
+    raise ValueError(f"Missing columns: {missing_cols}")
+
 df = df[FEATURES + [TARGET]]
 df.dropna(inplace=True)
 
 df[TARGET] = df[TARGET].apply(lambda x: 1 if x in [1, "yes", "positive"] else 0)
 
 print("[INFO] Final dataset shape:", df.shape)
-print("[INFO] Features used:", FEATURES)
+print("[INFO] Target Distribution:\n", df[TARGET].value_counts().to_string())
 
 # ============================================================
 # SPLIT DATA
@@ -158,9 +166,29 @@ X_test_scaled = scaler.transform(X_test)
 
 print("\n[INFO] Building ensemble model (Random Forest + XGBoost)...")
 
-# Define individual models
-rf = RandomForestClassifier(n_estimators=400, random_state=42)
-xgb_model = xgb.XGBClassifier(n_estimators=400, random_state=42, use_label_encoder=False, eval_metric='logloss')
+# Calculate Class Weights strategy
+# 1 (Disease) vs 0 (No Disease)
+# The model is heavily biased towards 1. We will force it to pay attention to 0.
+# Aggressive manual weighting:
+rf_weights = {0: 5, 1: 1} # Treat class 0 (Healthy) as 5x more important
+xgb_scale_pos_weight = 0.2 # Downweight class 1 (Disease) by 5x (approx 1/5)
+
+print(f"[INFO] Applied Manual Weights: RF={rf_weights}, XGB_scale_pos={xgb_scale_pos_weight}")
+
+# Define individual models with balancing
+rf = RandomForestClassifier(
+    n_estimators=100,  # Speed up for debug
+    random_state=42, 
+    class_weight=rf_weights 
+)
+
+xgb_model = xgb.XGBClassifier(
+    n_estimators=100, 
+    random_state=42, 
+    use_label_encoder=False, 
+    eval_metric='logloss',
+    scale_pos_weight=xgb_scale_pos_weight
+)
 
 # Create voting ensemble (soft voting for probabilities)
 ensemble = VotingClassifier(

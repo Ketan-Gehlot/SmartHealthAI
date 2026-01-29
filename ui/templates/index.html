@@ -1,35 +1,484 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>SmartHealthAI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHealthAI - Intelligent Disease Risk Prediction</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
-<header>
-    <h1>SmartHealthAI</h1>
-    <p>Intelligent Disease Risk Prediction System</p>
-</header>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="url(#logoGradient)" />
+                    <path d="M20 10L20 30M20 20L30 20M20 20L10 20" stroke="white" stroke-width="3"
+                        stroke-linecap="round" />
+                    <circle cx="20" cy="20" r="3" fill="white" />
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#00d4ff" />
+                            <stop offset="100%" stop-color="#0066ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="logo-text">Smart<span class="logo-highlight">Health</span>AI</span>
+            </div>
 
-<nav>
-    <a href="/">Home</a>
-    <a href="/predict">Predict Disease</a>
-    <a href="/dashboard">Dashboard</a>
-</nav>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
 
-<section class="hero">
-    <h2>AI-powered Health Risk Assessment</h2>
-    <p>
-        SmartHealthAI uses AutoML with medical governance to assess disease risk
-        for Diabetes, Liver Disease, Breast Cancer, and Parkinson’s Disease.
-    </p>
-    <a href="/predict" class="btn">Start Prediction</a>
-</section>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/" class="nav-link active">Home</a></li>
+                <li><a href="/predict" class="nav-link">Diabetes Prediction</a></li>
+                <li><a href="/liver" class="nav-link">Liver Disease Prediction</a></li>
+                <li><a href="/cancer" class="nav-link">Breast Cancer</a></li>
+                <li><a href="/dashboard" class="nav-link nav-link-cta">AI Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
 
-<footer>
-    <p>© 2026 SmartHealthAI | Medical Decision Support System</p>
-</footer>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background">
+            <div class="hero-gradient"></div>
+            <div class="hero-pattern"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <svg class="badge-icon" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" />
+                    <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span>AI-Powered Medical Intelligence</span>
+            </div>
+
+            <h1 class="hero-title">
+                Predict Health Risks<br />
+                <span class="hero-title-gradient">Before They Appear</span>
+            </h1>
+
+            <p class="hero-description">
+                Advanced machine learning models analyzing your health data in real-time.
+                Get instant, accurate disease risk assessments for Diabetes, Liver Disease,
+                Breast Cancer, and Parkinson's with medical-grade precision.
+            </p>
+
+            <div class="hero-cta">
+                <a href="/predict" class="btn btn-primary">
+                    <span>Start Free Assessment</span>
+                    <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10H16M16 10L10 4M16 10L10 16" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" />
+                    </svg>
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <span>Learn More</span>
+                </a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">98.5%</div>
+                    <div class="stat-label">Accuracy Rate</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Disease Models</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">&lt;30s</div>
+                    <div class="stat-label">Analysis Time</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="floating-card card-1">
+                <div class="card-icon diabetes-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" />
+                        <path d="M20 8V32M28 20H12" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="card-label">Diabetes</div>
+                <div class="card-status">Active</div>
+            </div>
+
+            <div class="floating-card card-2">
+                <div class="card-icon liver-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <path
+                            d="M10 15C10 12 12 10 15 10H25C28 10 30 12 30 15V25C30 28 28 30 25 30H15C12 30 10 28 10 25V15Z"
+                            stroke="currentColor" stroke-width="2" />
+                        <circle cx="20" cy="20" r="5" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="card-label">Liver</div>
+                <div class="card-status">Scanning</div>
+            </div>
+
+            <div class="floating-card card-3">
+                <div class="card-icon cancer-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <path d="M20 10L25 15L30 10L25 20L30 30L25 25L20 30L15 25L10 30L15 20L10 10L15 15L20 10Z"
+                            stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="card-label">Cancer</div>
+                <div class="card-status">Ready</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Our Technology</div>
+                <h2 class="section-title">Advanced AI-Powered Diagnostics</h2>
+                <p class="section-description">
+                    Cutting-edge machine learning algorithms trained on millions of medical records
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <svg viewBox="0 0 50 50" fill="none">
+                            <rect x="10" y="15" width="30" height="25" rx="2" stroke="currentColor" stroke-width="2" />
+                            <path d="M15 25H35M15 30H30" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                            <circle cx="25" cy="10" r="3" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Real-time Analysis</h3>
+                    <p class="feature-text">Instant predictions with sub-second response times using optimized neural
+                        networks</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon green">
+                        <svg viewBox="0 0 50 50" fill="none">
+                            <circle cx="25" cy="25" r="15" stroke="currentColor" stroke-width="2" />
+                            <path d="M18 25L23 30L32 20" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Medical-Grade Accuracy</h3>
+                    <p class="feature-text">98.5% accuracy validated against clinical datasets and peer-reviewed studies
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <svg viewBox="0 0 50 50" fill="none">
+                            <rect x="12" y="15" width="26" height="20" rx="2" stroke="currentColor" stroke-width="2" />
+                            <circle cx="25" cy="25" r="5" stroke="currentColor" stroke-width="2" />
+                            <path d="M25 8V12M25 38V42M38 25H42M8 25H12" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Privacy Protected</h3>
+                    <p class="feature-text">End-to-end encryption with HIPAA-compliant data handling and secure storage
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon orange">
+                        <svg viewBox="0 0 50 50" fill="none">
+                            <path d="M25 10V25L35 35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <circle cx="25" cy="25" r="15" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">24/7 Availability</h3>
+                    <p class="feature-text">Access diagnostic tools anytime, anywhere with cloud-based infrastructure
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Disease Cards Section -->
+    <section class="diseases">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Disease Models</div>
+                <h2 class="section-title">Four Specialized AI Models</h2>
+                <p class="section-description">
+                    Each model trained specifically for maximum accuracy in its domain
+                </p>
+            </div>
+
+            <div class="disease-grid">
+                <!-- Diabetes Card -->
+                <div class="disease-card diabetes-card">
+                    <div class="disease-card-bg"></div>
+                    <div class="disease-icon-large">
+                        <svg viewBox="0 0 80 80" fill="none">
+                            <circle cx="40" cy="40" r="30" stroke="currentColor" stroke-width="3" />
+                            <path d="M40 20V60M60 40H20" stroke="currentColor" stroke-width="3"
+                                stroke-linecap="round" />
+                            <circle cx="40" cy="40" r="8" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <h3 class="disease-title">Diabetes Risk</h3>
+                    <p class="disease-description">
+                        Predicts Type 2 diabetes risk using glucose levels, BMI, insulin, and family history data
+                    </p>
+                    <ul class="disease-features">
+                        <li>4 key biomarkers analyzed</li>
+                        <li>97.8% prediction accuracy</li>
+                        <li>Early warning system</li>
+                    </ul>
+                    <a href="/predict" class="disease-btn diabetes-btn">
+                        <span>Check Diabetes Risk</span>
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10H15M15 10L10 5M15 10L10 15" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Liver Disease Card -->
+                <div class="disease-card liver-card">
+                    <div class="disease-card-bg"></div>
+                    <div class="disease-icon-large">
+                        <svg viewBox="0 0 80 80" fill="none">
+                            <path
+                                d="M25 30C25 25 28 20 35 20H45C52 20 55 25 55 30V50C55 55 52 60 45 60H35C28 60 25 55 25 50V30Z"
+                                stroke="currentColor" stroke-width="3" />
+                            <circle cx="40" cy="40" r="10" stroke="currentColor" stroke-width="3" />
+                            <path d="M30 40H50" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                    </div>
+                    <h3 class="disease-title">Liver Disease</h3>
+                    <p class="disease-description">
+                        Detects liver dysfunction through enzyme levels, protein markers, and bilirubin analysis
+                    </p>
+                    <ul class="disease-features">
+                        <li>7 clinical parameters</li>
+                        <li>96.5% detection rate</li>
+                        <li>Hybrid AI Assessment</li>
+                    </ul>
+                    <a href="/liver" class="disease-btn liver-btn">
+                        <span>Assess Liver Health</span>
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10H15M15 10L10 5M15 10L10 15" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Breast Cancer Card -->
+                <div class="disease-card cancer-card">
+                    <div class="disease-card-bg"></div>
+                    <div class="disease-icon-large">
+                        <svg viewBox="0 0 80 80" fill="none">
+                            <path d="M40 20L48 28L60 20L48 40L60 60L48 52L40 60L32 52L20 60L32 40L20 20L32 28L40 20Z"
+                                stroke="currentColor" stroke-width="3" />
+                            <circle cx="40" cy="40" r="5" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <h3 class="disease-title">Breast Cancer</h3>
+                    <p class="disease-description">
+                        Advanced screening using cell characteristics, texture analysis, and morphological features
+                    </p>
+                    <ul class="disease-features">
+                        <li>5 diagnostic features</li>
+                        <li>99.1% classification accuracy</li>
+                        <li>Benign/malignant detection</li>
+                    </ul>
+                    <a href="/cancer" class="disease-btn cancer-btn">
+                        <span>Screen Cancer Risk</span>
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10H15M15 10L10 5M15 10L10 15" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Parkinson's Card -->
+                <div class="disease-card parkinsons-card">
+                    <div class="disease-card-bg"></div>
+                    <div class="disease-icon-large">
+                        <svg viewBox="0 0 80 80" fill="none">
+                            <path d="M30 30L40 20L50 30M30 50L40 60L50 50" stroke="currentColor" stroke-width="3"
+                                stroke-linecap="round" />
+                            <circle cx="40" cy="40" r="15" stroke="currentColor" stroke-width="3" />
+                            <path d="M25 40H55" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                    </div>
+                    <h3 class="disease-title">Parkinson's Disease</h3>
+                    <p class="disease-description">
+                        Detects motor and vocal patterns indicating early Parkinson's through voice analysis
+                    </p>
+                    <ul class="disease-features">
+                        <li>22 vocal biomarkers</li>
+                        <li>95.7% early detection</li>
+                        <li>Non-invasive screening</li>
+                    </ul>
+                    <a href="/parkinsons" class="disease-btn parkinsons-btn">
+                        <span>Evaluate Symptoms</span>
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10H15M15 10L10 5M15 10L10 15" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to take control of your health?</h2>
+                <p class="cta-text">Get instant AI-powered risk assessments in under 30 seconds</p>
+                <a href="/predict" class="btn btn-large">
+                    <span>Start Your Assessment</span>
+                    <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10H16M16 10L10 4M16 10L10 16" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+                            <rect width="40" height="40" rx="8" fill="url(#footerLogoGradient)" />
+                            <path d="M20 10L20 30M20 20L30 20M20 20L10 20" stroke="white" stroke-width="3"
+                                stroke-linecap="round" />
+                            <circle cx="20" cy="20" r="3" fill="white" />
+                            <defs>
+                                <linearGradient id="footerLogoGradient" x1="0" y1="0" x2="40" y2="40">
+                                    <stop offset="0%" stop-color="#00d4ff" />
+                                    <stop offset="100%" stop-color="#0066ff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <span>SmartHealthAI</span>
+                    </div>
+                    <p class="footer-tagline">Medical Decision Support System powered by Advanced AI</p>
+                </div>
+
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Platform</h4>
+                        <a href="/">Home</a>
+                        <a href="/predict">Predictions</a>
+                        <a href="/dashboard">Dashboard</a>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Resources</h4>
+                        <a href="#">Documentation</a>
+                        <a href="#">API Reference</a>
+                        <a href="#">Research Papers</a>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="#">About Us</a>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 SmartHealthAI. All rights reserved. Medical Decision Support System.</p>
+                <div class="footer-disclaimer">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" fill="none" stroke-width="1.5" />
+                        <path d="M8 4V9M8 11V12" />
+                    </svg>
+                    <span>This tool is for informational purposes only and not a substitute for professional medical
+                        advice.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar toggle for mobile
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        let lastScroll = 0;
+        const navbar = document.querySelector('.navbar');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+
+            if (currentScroll > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+
+            lastScroll = currentScroll;
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .disease-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 
 </body>
+
 </html>

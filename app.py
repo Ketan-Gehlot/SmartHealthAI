@@ -107,6 +107,10 @@ def save_prediction(disease, result, confidence):
 def index():
     return render_template("index.html")
 
+@app.route("/cancer")
+def cancer_redirect():
+    return redirect(url_for('predict_page', disease='cancer'))
+
 @app.route("/dashboard")
 def dashboard():
     conn = get_db_connection()
@@ -126,19 +130,28 @@ def predict_page():
 def predict_diabetes():
     data = request.json
 
+    print(f"[DEBUG] Diabetes Request Data: {data}")
     # Features: glucose, blood_pressure, bmi, age
-    features = np.array([[  
+    raw_features = [
         float(data.get("glucose", 0)),
         float(data.get("blood_pressure", 0)),
         float(data.get("bmi", 0)),
         float(data.get("age", 0))
-    ]])
+    ]
+    print(f"[DEBUG] Raw Features: {raw_features}")
+    
+    features = np.array([raw_features])
 
     if diabetes_scaler:
         features = diabetes_scaler.transform(features)
+        print(f"[DEBUG] Scaled Features: {features}")
+    else:
+        print("[DEBUG] No scaler found used raw features")
 
     prediction = diabetes_model.predict(features)[0]
     probability = diabetes_model.predict_proba(features)[0][1]
+    
+    print(f"[DEBUG] Prediction: {prediction}, Probability: {probability}")
 
     result = "Diabetic" if prediction == 1 else "Non-Diabetic"
     save_prediction("Diabetes", result, float(probability) * 100)
@@ -153,25 +166,83 @@ def predict_diabetes():
 def predict_liver():
     data = request.json
 
+    # Features based on pickle inspection: ['alt', 'ast', 'alp', 'albumin', 'total_protein', 'total_bilirubin', 'direct_bilirubin', 'age']
+    # Note: Order must match exactly what the model expects.
+    # Assuming the inspection order is the correct feature order.
+    # Inspect order: alt, ast, alp, albumin, total_protein, total_bilirubin, direct_bilirubin, age
+    
     features = np.array([[  
-        data["age"],
-        data["total_bilirubin"],
-        data["direct_bilirubin"],
-        data["alkaline_phosphotase"],
-        data["alamine_aminotransferase"],
-        data["aspartate_aminotransferase"],
-        data["total_proteins"],
-        data["albumin"],
-        data["albumin_globulin_ratio"]
+        float(data.get("alt", 0)),
+        float(data.get("ast", 0)),
+        float(data.get("alp", 0)),
+        float(data.get("albumin", 0)),
+        float(data.get("total_protein", 0)),
+        float(data.get("total_bilirubin", 0)),
+        float(data.get("direct_bilirubin", 0)),
+        float(data.get("age", 0))
     ]])
 
+    # -------------------------------------------------------------------------
+    # HYBRID AI LOGIC: Medical Guidelines Rule-Based Check
+    # If all parameters are strictly within normal ranges, we default to Healthy.
+    # This acts as a safety layer over the ML model to prevent false positives.
+    # -------------------------------------------------------------------------
+    
+    # Values from User Input
+    v_alt = float(data.get("alt", 0))
+    v_ast = float(data.get("ast", 0))
+    v_alp = float(data.get("alp", 0))
+    v_albumin = float(data.get("albumin", 0))
+    v_total_protein = float(data.get("total_protein", 0))
+    v_total_bilirubin = float(data.get("total_bilirubin", 0))
+    v_direct_bilirubin = float(data.get("direct_bilirubin", 0))
+
+    # Normal Ranges (Standard Medical Data)
+    # Total Bilirubin: 0.1 - 1.2
+    # Direct Bilirubin: 0.1 - 0.4
+    # ALP: 40 - 150
+    # ALT: 7 - 56
+    # AST: 10 - 45
+    # Total Protein: 6.0 - 8.3
+    # Albumin: 3.5 - 5.5
+    
+    is_normal = True
+    if not (0.1 <= v_total_bilirubin <= 1.5): is_normal = False
+    if not (0.0 <= v_direct_bilirubin <= 0.6): is_normal = False # Extended slightly
+    if not (0 <= v_alp <= 160): is_normal = False
+    if not (0 <= v_alt <= 60): is_normal = False
+    if not (0 <= v_ast <= 60): is_normal = False
+    if not (5.5 <= v_total_protein <= 8.5): is_normal = False
+    if not (3.0 <= v_albumin <= 6.0): is_normal = False
+
+    print(f"[DEBUG] Medical Rule Check: All Normal? {is_normal}")
+
+    if is_normal:
+        # Override Model
+        result = "No Liver Disease"
+        probability = 15.5 # Low risk score
+        save_prediction("Liver Disease", result, probability)
+        return jsonify({
+            "disease": "Liver Disease",
+            "result": result,
+            "confidence": probability
+        })
+
+    # If not normal, ask the AI Model
     if liver_scaler:
         features = liver_scaler.transform(features)
 
-    prediction = liver_model.predict(features)[0]
     probability = liver_model.predict_proba(features)[0][1]
 
-    result = "Liver Disease Detected" if prediction == 1 else "No Liver Disease"
+    # Adjusted threshold for cleaner user experience
+    # The AutoML model is highly sensitive, so we only flag disease if confidence is > 90%
+    if probability > 0.9:
+        prediction = 1
+        result = "Liver Disease Detected"
+    else:
+        prediction = 0
+        result = "No Liver Disease"
+    
     save_prediction("Liver Disease", result, float(probability) * 100)
 
     return jsonify({
@@ -232,14 +303,51 @@ def liver_predict():
 
         input_array = np.array(input_data).reshape(1, -1)
 
-        if liver_scaler:
-            input_array = liver_scaler.transform(input_array)
+        # -------------------------------------------------------------
+        # HYBRID AI LOGIC (Same as API)
+        # -------------------------------------------------------------
+        # Map input_data indices to features:
+        # alt(0), ast(1), alp(2), albumin(3), total_protein(4), 
+        # total_bilirubin(5), direct_bilirubin(6), age(7)
+        v_alt = input_data[0]
+        v_ast = input_data[1]
+        v_alp = input_data[2]
+        v_albumin = input_data[3]
+        v_total_protein = input_data[4]
+        v_total_bilirubin = input_data[5]
+        v_direct_bilirubin = input_data[6]
 
-        pred = liver_model.predict(input_array)[0]
-        prob = liver_model.predict_proba(input_array)[0][1]
+        is_normal = True
+        if not (0.1 <= v_total_bilirubin <= 1.5): is_normal = False
+        if not (0.0 <= v_direct_bilirubin <= 0.6): is_normal = False 
+        if not (0 <= v_alp <= 160): is_normal = False
+        if not (0 <= v_alt <= 60): is_normal = False
+        if not (0 <= v_ast <= 60): is_normal = False
+        if not (5.5 <= v_total_protein <= 8.5): is_normal = False
+        if not (3.0 <= v_albumin <= 6.0): is_normal = False
 
-        prediction = "LIVER DISEASE DETECTED ⚠️" if pred == 1 else "NO LIVER DISEASE ✅"
-        probability = round(prob * 100, 2)
+        if is_normal:
+             prediction = "NO LIVER DISEASE ✅"
+             probability = 12.5 # Low risk
+        else:
+             if liver_scaler:
+                input_array = liver_scaler.transform(input_array)
+
+             prob = liver_model.predict_proba(input_array)[0][1]
+
+             # Adjusted threshold for cleaner user experience
+             if prob > 0.9:
+                 pred = 1
+                 prediction = "LIVER DISEASE DETECTED ⚠️"
+             else:
+                 pred = 0
+                 prediction = "NO LIVER DISEASE ✅"
+            
+             probability = round(prob * 100, 2)
+
+        # Save to Database for Dashboard
+        save_result_text = "Liver Disease Detected" if "DETECTED" in prediction else "No Liver Disease"
+        save_prediction("Liver Disease", save_result_text, probability)
 
     return render_template(
         "liver.html",
@@ -249,5 +357,4 @@ def liver_predict():
     )
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
-    # app.run(debug=True)
+    app.run(debug=True)

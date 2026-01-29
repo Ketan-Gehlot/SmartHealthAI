@@ -12,7 +12,7 @@ data/
 *.rar
 
 # ML models (large)
-
+*.pkl
 *.h5
 *.joblib
 
@@ -25,6 +25,7 @@ __pycache__/
 *.pyc
 
 # Logs & temp
+logs/
 *.log
 tempCodeRunnerFile.py
 

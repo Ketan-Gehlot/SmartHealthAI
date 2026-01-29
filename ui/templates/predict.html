@@ -1,41 +1,450 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Predict Disease | SmartHealthAI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction | SmartHealthAI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
-<header>
-    <h1>Disease Prediction</h1>
-</header>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="url(#logoGradient)" />
+                    <path d="M20 10L20 30M20 20L30 20M20 20L10 20" stroke="white" stroke-width="3"
+                        stroke-linecap="round" />
+                    <circle cx="20" cy="20" r="3" fill="white" />
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#00d4ff" />
+                            <stop offset="100%" stop-color="#0066ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="logo-text">Smart<span class="logo-highlight">Health</span>AI</span>
+            </div>
 
-<nav>
-    <a href="/">Home</a>
-    <a href="/predict">Predict</a>
-    <a href="/dashboard">Dashboard</a>
-</nav>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
 
-<section class="container">
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/predict" class="nav-link active">Diabetes Prediction</a></li>
+                <li><a href="/liver" class="nav-link">Liver Disease Prediction</a></li>
+                <li><a href="/cancer" class="nav-link">Breast Cancer</a></li>
+                <li><a href="/dashboard" class="nav-link nav-link-cta">AI Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
 
-    <label>Select Disease</label>
-    <select id="diseaseSelect">
-        <option value="">-- Select Disease --</option>
-        <option value="diabetes">Diabetes</option>
-        <option value="liver">Liver Disease</option>
-        <option value="cancer">Breast Cancer</option>
-        <option value="parkinsons">Parkinson's</option>
-    </select>
+    <!-- Prediction Section -->
+    <section class="predict-container">
+        <div class="form-header">
+            <div class="section-badge">AI-Powered Analysis</div>
+            <h1>Disease Risk Prediction</h1>
+            <p>Select a disease model and enter your medical parameters for instant risk assessment</p>
+        </div>
 
-    <form id="predictionForm"></form>
+        <div class="form-group">
+            <label for="diseaseSelect">
+                <svg style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px;"
+                    viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        d="M10 2C5.58 2 2 5.58 2 10s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" />
+                    <circle cx="10" cy="10" r="3" />
+                </svg>
+                Select Disease Model
+            </label>
+            <select id="diseaseSelect" class="disease-selector">
+                <option value="">-- Choose a disease to analyze --</option>
+                <option value="diabetes">🩸 Diabetes</option>
+                <option value="liver">🫀 Liver Disease</option>
+                <option value="cancer">🎗️ Breast Cancer</option>
+                <option value="parkinsons">🧠 Parkinson's Disease</option>
+            </select>
+        </div>
 
-    <button onclick="submitPrediction()" class="btn">Predict</button>
+        <div id="diseaseInfo" class="disease-info"></div>
 
-    <div id="resultBox"></div>
+        <form id="predictionForm" class="prediction-form"></form>
 
-</section>
+        <div id="formActions" class="form-actions" style="display: none;">
+            <button onclick="submitPrediction()" class="btn btn-primary btn-large" style="width: 100%;">
+                <span>Analyze Risk</span>
+                <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M4 10H16M16 10L10 4M16 10L10 16" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <div id="resultBox" class="result-box" style="display: none;"></div>
+    </section>
+
+    <style>
+        .disease-selector {
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .disease-info {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 16px;
+            display: none;
+        }
+
+        .disease-info.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .disease-info.diabetes-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+            border: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .disease-info.liver-info {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+            border: 2px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .disease-info.cancer-info {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
+            border: 2px solid rgba(236, 72, 153, 0.2);
+        }
+
+        .disease-info.parkinsons-info {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05));
+            border: 2px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .disease-info h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .disease-info p {
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        .prediction-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .form-actions {
+            margin-top: 2rem;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon svg {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: var(--gray-400);
+        }
+
+        .input-icon input {
+            padding-left: 3rem;
+        }
+    </style>
+
+    <!-- <script src="{{ url_for('static', filename='js/main.js') }}"></script> -->
+
+    <script>
+        // Disease information
+        const diseaseData = {
+            diabetes: {
+                name: 'Diabetes',
+                description: 'This model analyzes glucose levels, blood pressure, BMI, and age to predict risk.',
+                class: 'diabetes-info',
+                fields: [
+                    { name: 'weight', label: 'Weight (kg) | Normal Range: 50-100 kg', type: 'number', min: 1, max: 300 },
+                    { name: 'height', label: 'Height (cm) | Normal Range: 150-200 cm', type: 'number', step: '1', min: 50, max: 250 },
+                    { name: 'bmi', label: 'BMI (Body Mass Index) | Normal Range: 18.5-24.9', type: 'number', step: '0.1', min: 0, max: 70, readonly: true },
+                    { name: 'glucose', label: 'Glucose Level (mg/dL) | Normal Range: 70-100 mg/dL', type: 'number', min: 0, max: 300 },
+                    { name: 'blood_pressure', label: 'Blood Pressure (mm Hg) | Normal Range: 90-120 mm Hg', type: 'number', min: 0, max: 200 },
+                    { name: 'age', label: 'Age (years) | Normal Range: 18-100 years', type: 'number', min: 1, max: 120 }
+                ]
+            },
+            liver: {
+                name: 'Liver Disease',
+                description: 'Detects liver dysfunction through clinical parameters including enzyme levels and bilirubin analysis.',
+                class: 'liver-info',
+                fields: [
+                    { name: 'age', label: 'Age (years)', type: 'number', min: 1, max: 120 },
+                    { name: 'total_bilirubin', label: 'Total Bilirubin (mg/dL)', type: 'number', step: '0.1', min: 0, max: 80 },
+                    { name: 'direct_bilirubin', label: 'Direct Bilirubin (mg/dL)', type: 'number', step: '0.1', min: 0, max: 30 },
+                    { name: 'alp', label: 'Alkaline Phosphotase (ALP) (IU/L)', type: 'number', min: 0, max: 3000 },
+                    { name: 'alt', label: 'Alamine Aminotransferase (ALT) (IU/L)', type: 'number', min: 0, max: 3000 },
+                    { name: 'ast', label: 'Aspartate Aminotransferase (AST) (IU/L)', type: 'number', min: 0, max: 5000 },
+                    { name: 'total_protein', label: 'Total Proteins (g/dL)', type: 'number', step: '0.1', min: 0, max: 15 },
+                    { name: 'albumin', label: 'Albumin (g/dL)', type: 'number', step: '0.1', min: 0, max: 10 }
+                ]
+            },
+            cancer: {
+                name: 'Breast Cancer',
+                description: 'Advanced screening using 30+ tumor markers, cell characteristics, and morphological features with 99.1% classification accuracy for benign/malignant detection.',
+                class: 'cancer-info',
+                fields: [
+                    { name: 'radius_mean', label: 'Mean Radius', type: 'number', step: '0.01', min: 0, max: 50 },
+                    { name: 'texture_mean', label: 'Mean Texture', type: 'number', step: '0.01', min: 0, max: 50 },
+                    { name: 'perimeter_mean', label: 'Mean Perimeter', type: 'number', step: '0.01', min: 0, max: 200 },
+                    { name: 'area_mean', label: 'Mean Area', type: 'number', step: '0.01', min: 0, max: 3000 },
+                    { name: 'smoothness_mean', label: 'Mean Smoothness', type: 'number', step: '0.0001', min: 0, max: 1 }
+                ]
+            },
+            parkinsons: {
+                name: "Parkinson's Disease",
+                description: 'Detects motor and vocal patterns indicating early Parkinson\'s through 22 vocal biomarkers with 95.7% early detection rate in a non-invasive screening.',
+                class: 'parkinsons-info',
+                fields: [
+                    { name: 'mdvp_fo', label: 'MDVP:Fo(Hz)', type: 'number', step: '0.001', min: 0, max: 300 },
+                    { name: 'mdvp_fhi', label: 'MDVP:Fhi(Hz)', type: 'number', step: '0.001', min: 0, max: 300 },
+                    { name: 'mdvp_flo', label: 'MDVP:Flo(Hz)', type: 'number', step: '0.001', min: 0, max: 300 },
+                    { name: 'mdvp_jitter', label: 'MDVP:Jitter(%)', type: 'number', step: '0.00001', min: 0, max: 1 },
+                    { name: 'mdvp_shimmer', label: 'MDVP:Shimmer', type: 'number', step: '0.0001', min: 0, max: 1 }
+                ]
+            }
+        };
+
+        // Handle disease selection
+        // Handle disease selection
+        document.getElementById('diseaseSelect').addEventListener('change', function () {
+            const selectedDisease = this.value;
+
+            // REDIRECT FIX: If Liver is selected, go to the dedicated page
+            if (selectedDisease === 'liver') {
+                window.location.href = '/liver';
+                return;
+            }
+
+            const diseaseInfo = document.getElementById('diseaseInfo');
+            const predictionForm = document.getElementById('predictionForm');
+            const formActions = document.getElementById('formActions');
+            const resultBox = document.getElementById('resultBox');
+
+            // Clear previous content
+            diseaseInfo.innerHTML = '';
+            predictionForm.innerHTML = '';
+            resultBox.style.display = 'none';
+
+            if (selectedDisease && diseaseData[selectedDisease]) {
+                const data = diseaseData[selectedDisease];
+
+                // Show disease info
+                diseaseInfo.className = `disease-info ${data.class} active`;
+                diseaseInfo.innerHTML = `
+            <h3>${data.name}</h3>
+            <p>${data.description}</p>
+        `;
+
+                // Build form fields
+                data.fields.forEach(field => {
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'form-group';
+
+                    let inputHTML = '';
+                    if (field.type === 'select') {
+                        inputHTML = `
+                    <label for="${field.name}">${field.label}</label>
+                    <select id="${field.name}" name="${field.name}" required>
+                        <option value="">Select...</option>
+                        ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                `;
+                    } else {
+                        inputHTML = `
+                    <label for="${field.name}">${field.label}</label>
+                    <input 
+                        type="${field.type}" 
+                        id="${field.name}" 
+                        name="${field.name}" 
+                        ${field.step ? `step="${field.step}"` : ''}
+                        ${field.min !== undefined ? `min="${field.min}"` : ''}
+                        ${field.max !== undefined ? `max="${field.max}"` : ''}
+                        ${field.readonly ? 'readonly' : ''}
+                        required
+                        placeholder="Enter ${field.label.toLowerCase()}"
+                    >
+                `;
+                    }
+
+                    formGroup.innerHTML = inputHTML;
+                    predictionForm.appendChild(formGroup);
+                });
+
+                formActions.style.display = 'block';
+            } else {
+                diseaseInfo.classList.remove('active');
+                formActions.style.display = 'none';
+            }
+        });
+
+        // Auto-calculate BMI
+        document.getElementById('predictionForm').addEventListener('input', function (e) {
+            if (e.target.id === 'weight' || e.target.id === 'height') {
+                const weight = parseFloat(document.getElementById('weight')?.value);
+                const height = parseFloat(document.getElementById('height')?.value);
+                const bmiInput = document.getElementById('bmi');
+
+                if (weight && height && bmiInput) {
+                    const heightInMeters = height / 100; // Convert cm to meters
+                    const bmi = weight / (heightInMeters * heightInMeters);
+                    bmiInput.value = bmi.toFixed(2);
+                }
+            }
+        });
+
+
+        // Check URL params on load
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const diseaseParam = urlParams.get('disease');
+            const diseaseSelect = document.getElementById('diseaseSelect');
+
+            if (diseaseParam && diseaseData[diseaseParam]) {
+                diseaseSelect.value = diseaseParam;
+                diseaseSelect.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Handle form submission
+        function submitPrediction() {
+            const diseaseSelect = document.getElementById("diseaseSelect");
+            const form = document.getElementById('predictionForm');
+            const resultBox = document.getElementById('resultBox');
+
+            // Validate form
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Show loading state
+            resultBox.style.display = 'block';
+            resultBox.className = 'result-box';
+            resultBox.innerHTML = `
+        <div style="text-align: center;">
+            <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(0, 102, 255, 0.1); border-top-color: #0066ff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 1rem; color: var(--gray-600);">Analyzing your data...</p>
+        </div>
+    `;
+
+            // Gather data
+            const inputs = form.querySelectorAll("input, select");
+            let data = {};
+            inputs.forEach(i => {
+                if (i.name) {
+                    data[i.name] = parseFloat(i.value);
+                }
+            });
+
+            const disease = diseaseSelect.value;
+            const endpoint = "/api/predict/" + disease;
+
+            // Actual API Call
+            fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(result => {
+
+                    let isBad = false;
+                    const resStr = result.result.toLowerCase();
+                    if (resStr.includes("diabetic") && !resStr.includes("non")) isBad = true;
+                    if (resStr.includes("detected") || resStr.includes("disease")) isBad = true;
+                    if (resStr.includes("malignant")) isBad = true;
+
+                    // Safety check for negation
+                    if (resStr.includes("no ") || resStr.includes("non-") || resStr.includes("benign")) isBad = false;
+
+                    const isPositive = isBad; // Positive for disease
+                    const probability = result.confidence;
+
+                    resultBox.className = `result-box ${isPositive ? 'positive' : 'negative'}`;
+                    resultBox.innerHTML = `
+            <svg style="width: 60px; height: 60px; margin-bottom: 1rem;" viewBox="0 0 60 60" fill="none">
+                <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="3" fill="none"/>
+                ${!isPositive ?
+                            // Checkmark for Good/Negative Result
+                            '<path d="M20 30L27 37L40 23" stroke="currentColor" stroke-width="3" fill="none"/>' :
+                            // X or Alert for Bad/Positive Result
+                            '<path d="M30 18v12M30 38v2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'
+                        }
+            </svg>
+            <h3 class="result-title">${result.result}</h3>
+            <p class="result-probability">Confidence Level: ${probability}%</p>
+            <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.95rem;">
+                ${isPositive ?
+                            'Please consult with a healthcare professional for further evaluation and diagnosis.' :
+                            'Your results indicate low risk, but regular health monitoring is recommended.'
+                        }
+            </p>
+        `;
+                })
+                .catch(err => {
+                    console.error(err);
+                    resultBox.innerHTML = `<p style="color:red; text-align:center; padding:1rem;">Error processing request. Please try again.</p>`;
+                });
+        }
+
+        // Navbar functionality
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.pageYOffset > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
 </body>
+
 </html>

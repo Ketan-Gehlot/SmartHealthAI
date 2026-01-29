@@ -1,30 +1,564 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Liver Disease Prediction</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liver Disease Prediction | SmartHealthAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
-<div class="container">
-    <h1>Liver Disease Prediction System</h1>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="url(#logoGradient)" />
+                    <path d="M20 10L20 30M20 20L30 20M20 20L10 20" stroke="white" stroke-width="3"
+                        stroke-linecap="round" />
+                    <circle cx="20" cy="20" r="3" fill="white" />
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#00d4ff" />
+                            <stop offset="100%" stop-color="#0066ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="logo-text">Smart<span class="logo-highlight">Health</span>AI</span>
+            </div>
 
-    <form method="POST">
-        {% for feature in features %}
-        <label>{{ feature.replace("_", " ").upper() }}</label>
-        <input type="number" step="any" name="{{ feature }}" required>
-        {% endfor %}
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
 
-        <button type="submit">Predict</button>
-    </form>
-
-    {% if prediction %}
-        <div class="result">
-            <h2>{{ prediction }}</h2>
-            <p>Risk Probability: {{ probability }}%</p>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/predict" class="nav-link">Diabetes Prediction</a></li>
+                <li><a href="/liver" class="nav-link active">Liver Disease Prediction</a></li>
+                <li><a href="/cancer" class="nav-link">Breast Cancer</a></li>
+                <li><a href="/dashboard" class="nav-link nav-link-cta">AI Dashboard</a></li>
+            </ul>
         </div>
-    {% endif %}
-</div>
+    </nav>
+
+    <!-- Liver Disease Prediction Section -->
+    <section class="predict-container liver-theme">
+        <div class="form-header">
+            <div class="liver-icon-large">
+                <svg viewBox="0 0 80 80" fill="none">
+                    <path
+                        d="M25 30C25 25 28 20 35 20H45C52 20 55 25 55 30V50C55 55 52 60 45 60H35C28 60 25 55 25 50V30Z"
+                        stroke="currentColor" stroke-width="3" />
+                    <circle cx="40" cy="40" r="10" stroke="currentColor" stroke-width="3" />
+                    <path d="M30 40H50" stroke="currentColor" stroke-width="2" />
+                </svg>
+            </div>
+            <div class="section-badge liver-badge">Liver Health Analysis</div>
+            <h1>Liver Disease Risk Prediction</h1>
+            <p>Advanced AI model analyzing 10 clinical parameters to detect liver dysfunction with 96.5% accuracy</p>
+        </div>
+
+        <div class="disease-info-card liver-info-card">
+            <div class="info-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4M12 16h.01" />
+                </svg>
+            </div>
+            <div class="info-card-content">
+                <h3>What We Analyze</h3>
+                <p>Our AI model evaluates enzyme levels (ALT, AST, ALP), protein markers (albumin, total proteins),
+                    bilirubin levels (direct & total), and albumin-globulin ratio to provide comprehensive liver health
+                    assessment.</p>
+            </div>
+        </div>
+
+        <form method="POST" id="liverForm" class="prediction-form">
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Personal Information
+                </h3>
+
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" step="1" required placeholder="Enter age">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    Bilirubin Levels
+                </h3>
+
+                <div class="form-group">
+                    <label for="total_bilirubin">Total Bilirubin (mg/dL)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="total_bilirubin" name="total_bilirubin" step="0.1" min="0" required
+                            placeholder="0.0">
+                        <span class="input-unit">mg/dL</span>
+                    </div>
+                    <small class="input-hint">Normal range: 0.1-1.2 mg/dL</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="direct_bilirubin">Direct Bilirubin (mg/dL)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="direct_bilirubin" name="direct_bilirubin" step="0.1" min="0" required
+                            placeholder="0.0">
+                        <span class="input-unit">mg/dL</span>
+                    </div>
+                    <small class="input-hint">Normal range: 0.1-0.3 mg/dL</small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    Liver Enzymes
+                </h3>
+
+                <div class="form-group">
+                    <label for="alp">Alkaline Phosphotase (ALP) (IU/L)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="alp" name="alp" step="1" min="0" required placeholder="0">
+                        <span class="input-unit">IU/L</span>
+                    </div>
+                    <small class="input-hint">Normal: 44-147 IU/L</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="alt">Alamine Aminotransferase (ALT) (IU/L)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="alt" name="alt" step="1" min="0" required placeholder="0">
+                        <span class="input-unit">IU/L</span>
+                    </div>
+                    <small class="input-hint">Normal: 7-56 IU/L</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="ast">Aspartate Aminotransferase (AST) (IU/L)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="ast" name="ast" step="1" min="0" required placeholder="0">
+                        <span class="input-unit">IU/L</span>
+                    </div>
+                    <small class="input-hint">Normal: 10-40 IU/L</small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    Protein Markers
+                </h3>
+
+                <div class="form-group">
+                    <label for="total_protein">Total Proteins (g/dL)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="total_protein" name="total_protein" step="0.1" min="0" required
+                            placeholder="0.0">
+                        <span class="input-unit">g/dL</span>
+                    </div>
+                    <small class="input-hint">Normal: 6.0-8.3 g/dL</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="albumin">Albumin (g/dL)</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="albumin" name="albumin" step="0.1" min="0" required placeholder="0.0">
+                        <span class="input-unit">g/dL</span>
+                    </div>
+                    <small class="input-hint">Normal: 3.5-5.5 g/dL</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large liver-btn" style="width: 100%;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    <span>Analyze Liver Health</span>
+                </button>
+            </div>
+        </form>
+
+        {% if prediction %}
+        <div class="result-box {% if 'Disease' in prediction %}positive{% else %}negative{% endif %} liver-result">
+            <div class="result-icon">
+                {% if 'Disease' in prediction %}
+                <svg viewBox="0 0 60 60" fill="none">
+                    <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="3" />
+                    <path d="M30 18v12M30 38v2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                </svg>
+                {% else %}
+                <svg viewBox="0 0 60 60" fill="none">
+                    <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="3" />
+                    <path d="M20 30L27 37L40 23" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                {% endif %}
+            </div>
+
+            <h2 class="result-title">{{ prediction }}</h2>
+            <div class="result-probability">
+                <div class="probability-label">Risk Probability</div>
+                <div class="probability-value">{{ probability }}%</div>
+                <div class="probability-bar">
+                    <div class="probability-fill" style="width: {{ probability }}%"></div>
+                </div>
+            </div>
+
+            <div class="result-recommendation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4M12 16h.01" />
+                </svg>
+                <p>
+                    {% if 'Disease' in prediction %}
+                    <strong>Important:</strong> This prediction indicates potential liver disease risk.
+                    Please consult with a hepatologist or healthcare professional immediately for proper diagnosis and
+                    treatment.
+                    {% else %}
+                    <strong>Great news!</strong> Your liver health parameters appear normal.
+                    Continue maintaining a healthy lifestyle and regular check-ups.
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="result-actions">
+                <a href="/dashboard" class="btn btn-secondary">
+                    <span>View Dashboard</span>
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 10h10M10 5l5 5-5 5" />
+                    </svg>
+                </a>
+                <button onclick="window.location.reload()" class="btn btn-secondary">
+                    <span>New Prediction</span>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+
+    <style>
+        /* Liver-specific theme colors */
+        .liver-theme {
+            --theme-color: var(--liver-green);
+            --theme-light: var(--liver-light);
+            --theme-dark: var(--liver-dark);
+            --theme-gradient: var(--liver-gradient);
+        }
+
+        .liver-icon-large {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 2rem;
+            background: var(--liver-gradient);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .liver-icon-large svg {
+            width: 60px;
+            height: 60px;
+            color: white;
+        }
+
+        .liver-badge {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.15));
+            color: var(--liver-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .liver-info-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .info-card-icon {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--liver-green);
+        }
+
+        .info-card-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .info-card-content h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--liver-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card-content p {
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        .form-section {
+            background: var(--gray-50);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-section-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-section-title svg {
+            width: 24px;
+            height: 24px;
+            color: var(--liver-green);
+        }
+
+        .input-with-unit {
+            position: relative;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+            font-weight: 600;
+            font-size: 0.875rem;
+            pointer-events: none;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-hint {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .liver-btn {
+            background: var(--liver-gradient);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .liver-btn:hover {
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .liver-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .liver-result {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .liver-result.positive {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
+            border: 3px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .liver-result.negative {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+            border: 3px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .result-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .liver-result.positive .result-icon {
+            color: #ef4444;
+        }
+
+        .liver-result.negative .result-icon {
+            color: var(--liver-green);
+        }
+
+        .result-probability {
+            margin: 2rem 0;
+        }
+
+        .probability-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .probability-value {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .probability-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--gray-200);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background: var(--liver-gradient);
+            transition: width 1s ease;
+        }
+
+        .result-recommendation {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            display: flex;
+            gap: 1rem;
+            text-align: left;
+            border: 1px solid var(--gray-200);
+        }
+
+        .result-recommendation svg {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            color: var(--liver-green);
+        }
+
+        .result-recommendation p {
+            color: var(--gray-700);
+            line-height: 1.7;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 1.5rem;
+            }
+
+            .liver-info-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+
+            .result-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+
+    <script>
+        // Navbar functionality
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.pageYOffset > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Form validation hints
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function () {
+                if (this.validity.rangeUnderflow || this.validity.rangeOverflow) {
+                    this.style.borderColor = '#ef4444';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+        });
+    </script>
 
 </body>
+
 </html>
