@@ -68,13 +68,13 @@ print("[INFO] AutoML models loaded successfully.")
 # -------------------------------------------------
 
 def get_db_connection():
-    db_dir = os.path.join(BASE_DIR, "database")
-    os.makedirs(db_dir, exist_ok=True)   # ✅ creates folder on Render
+    # Render allows write access ONLY to /tmp
+    db_path = "/tmp/users.db"
 
-    db_path = os.path.join(db_dir, "users.db")
     conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 
 def init_db():
