@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 AUTOML_DIR = os.path.join(MODEL_DIR, "automl_models")
 
-DATABASE_PATH = os.path.join(BASE_DIR, "database", "users.db")
+
 
 print("[INFO] Loading AutoML models...")
 # Loading Pima model for Diabetes
@@ -68,9 +68,14 @@ print("[INFO] AutoML models loaded successfully.")
 # -------------------------------------------------
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE_PATH)
+    db_dir = os.path.join(BASE_DIR, "database")
+    os.makedirs(db_dir, exist_ok=True)   # ✅ creates folder on Render
+
+    db_path = os.path.join(db_dir, "users.db")
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 def init_db():
     conn = get_db_connection()
@@ -357,6 +362,6 @@ def liver_predict():
     )
 
 if __name__ == "__main__":
-   port = int(os.environ.get("PORT", 10000))
-app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
 
