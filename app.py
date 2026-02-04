@@ -68,8 +68,13 @@ print("[INFO] AutoML models loaded successfully.")
 # -------------------------------------------------
 
 def get_db_connection():
-    # Render allows write access ONLY to /tmp
-    db_path = "/tmp/users.db"
+    # Check if running on Render (or Linux in general for this project context)
+    if os.name == 'posix': 
+        # Render allows write access ONLY to /tmp or a persistent disk mounted path
+        db_path = "/tmp/users.db"
+    else:
+        # Local Windows environment
+        db_path = "users.db"
 
     conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
