@@ -12,6 +12,9 @@ import warnings
 
 # Suppress specific warnings from sklearn
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
+
+# Import Hybrid Clinical Rules Engine
+from controllers.diabetes_clinical_rules import hybrid_diabetes_predict
 warnings.filterwarnings("ignore", category=Warning, module="sklearn")
 
 app = Flask(__name__, template_folder='ui/templates', static_folder='ui/static')
@@ -139,37 +142,51 @@ def predict_page():
 @app.route("/api/predict/diabetes", methods=["POST"])
 def predict_diabetes():
     data = request.json
-
     print(f"[DEBUG] Diabetes Request Data: {data}")
-    # Features: glucose, blood_pressure, bmi, age
-    raw_features = [
-        float(data.get("glucose", 0)),
-        float(data.get("blood_pressure", 0)),
-        float(data.get("bmi", 0)),
-        float(data.get("age", 0))
-    ]
-    print(f"[DEBUG] Raw Features: {raw_features}")
     
-    features = np.array([raw_features])
-
-    if diabetes_scaler:
-        features = diabetes_scaler.transform(features)
-        print(f"[DEBUG] Scaled Features: {features}")
-    else:
-        print("[DEBUG] No scaler found used raw features")
-
-    prediction = diabetes_model.predict(features)[0]
-    probability = diabetes_model.predict_proba(features)[0][1]
+    glucose = float(data.get("glucose", 0))
+    blood_pressure = float(data.get("blood_pressure", 0))
+    bmi = float(data.get("bmi", 0))
+    age = float(data.get("age", 0))
+    hba1c = float(data.get("hba1c", 0))
+    insulin = float(data.get("insulin", 0))
+    skin_thickness = float(data.get("skin_thickness", 0))
+    family_history = bool(data.get("family_history", 0))
+    physical_activity = bool(data.get("physical_activity", 1))
     
-    print(f"[DEBUG] Prediction: {prediction}, Probability: {probability}")
+    hybrid_result = hybrid_diabetes_predict(
+        glucose=glucose,
+        blood_pressure=blood_pressure,
+        bmi=bmi,
+        age=age,
+        ml_model=diabetes_model,
+        ml_scaler=diabetes_scaler,
+        hba1c=hba1c,
+        insulin=insulin,
+        skin_thickness=skin_thickness,
+        family_history=family_history,
+        physical_activity=physical_activity
+    )
+    
+    result = hybrid_result["result"]
+    confidence = hybrid_result["confidence"]
+    
+    print(f"[DEBUG] Result: {result} | Confidence: {confidence}% | Risk: {hybrid_result['risk_level']}")
 
-    result = "Diabetic" if prediction == 1 else "Non-Diabetic"
-    save_prediction("Diabetes", result, float(probability) * 100)
+    save_prediction("Diabetes", result, confidence)
 
     return jsonify({
         "disease": "Diabetes",
         "result": result,
-        "confidence": round(float(probability) * 100, 2)
+        "confidence": round(confidence, 2),
+        "risk_level": hybrid_result["risk_level"],
+        "parameter_breakdown": hybrid_result["parameter_breakdown"],
+        "explanation": hybrid_result["explanation"],
+        "scores": {
+            "clinical": round(hybrid_result["clinical_score"] * 100, 1),
+            "ml_model": round(hybrid_result["ml_score"] * 100, 1),
+            "hybrid": round(hybrid_result["hybrid_score"] * 100, 1)
+        }
     })
 
 @app.route("/api/predict/liver", methods=["POST"])

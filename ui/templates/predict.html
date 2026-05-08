@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -170,8 +168,59 @@
             color: var(--gray-400);
         }
 
-        .input-icon input {
-            padding-left: 3rem;
+        .input-icon input { padding-left: 3rem; }
+
+        /* ===== V2 Result Styles with Inter + Space Grotesk ===== */
+        .clinical-result-v2 { text-align: left; font-family: 'Inter', sans-serif; }
+        
+        .result-hero { text-align: center; padding: 1.5rem 1rem 1.25rem; border-radius: 14px; margin-bottom: 1.5rem; }
+        .result-hero.positive { background: linear-gradient(135deg, #fef2f2, #fee2e2); }
+        .result-hero.negative { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+        .result-hero.prediabetic { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+        
+        .result-verdict { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .result-conf { font-size: 1.1rem; color: #64748b; font-weight: 500; margin-bottom: 0.5rem; }
+        
+        .risk-pill { display: inline-block; padding: 0.3rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; }
+
+        .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; color: #1e293b; margin: 1.25rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid #f1f5f9; }
+
+        /* Explanation Cards */
+        .explain-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem; }
+        .explain-card { display: flex; gap: 0.75rem; padding: 0.85rem 1rem; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; transition: transform 0.15s; }
+        .explain-card:hover { transform: translateX(4px); }
+        .explain-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+        .explain-body { flex: 1; }
+        .explain-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.92rem; color: #1e293b; margin-bottom: 0.2rem; }
+        .explain-text { font-family: 'Inter', sans-serif; font-size: 0.84rem; color: #64748b; line-height: 1.55; }
+
+        /* Parameter Pills */
+        .pills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem; }
+        .param-pill { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.65rem 0.85rem; }
+        .pill-icon { font-size: 1.1rem; margin-right: 0.4rem; }
+        .pill-label { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.8rem; color: #475569; }
+        .pill-val { float: right; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.85rem; color: #1e293b; }
+        .pill-status { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 0.2rem; }
+        .pill-bar { height: 4px; background: #e2e8f0; border-radius: 99px; margin-top: 0.35rem; overflow: hidden; }
+        .pill-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+
+        /* Score Chips */
+        .scores-row { display: flex; gap: 0.6rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+        .score-chip { flex: 1; min-width: 100px; text-align: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.6rem 0.5rem; }
+        .score-chip.highlight { background: #eef2ff; border-color: #c7d2fe; }
+        .sc-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .sc-val { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-top: 0.15rem; }
+
+        /* Disclaimer */
+        .disclaimer-v2 { font-family: 'Inter', sans-serif; font-size: 0.75rem; color: #94a3b8; line-height: 1.55; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
+
+        /* Prediabetic box */
+        .result-box.prediabetic { border-color: #f59e0b; background: linear-gradient(135deg, rgba(245,158,11,0.04), rgba(217,119,6,0.02)); color: #92400e; }
+
+        @media (max-width: 600px) {
+            .pills-grid { grid-template-columns: 1fr; }
+            .scores-row { flex-direction: column; }
+            .result-verdict { font-size: 1.5rem; }
         }
     </style>
 
@@ -181,16 +230,21 @@
         // Disease information
         const diseaseData = {
             diabetes: {
-                name: 'Diabetes',
-                description: 'This model analyzes glucose levels, blood pressure, BMI, and age to predict risk.',
+                name: 'Diabetes Screening',
+                description: 'Hybrid AI analysis using ADA/WHO medical thresholds + Machine Learning. Enter as many fields as possible for the most accurate prediction.',
                 class: 'diabetes-info',
                 fields: [
-                    { name: 'weight', label: 'Weight (kg) | Normal Range: 50-100 kg', type: 'number', min: 1, max: 300 },
-                    { name: 'height', label: 'Height (cm) | Normal Range: 150-200 cm', type: 'number', step: '1', min: 50, max: 250 },
-                    { name: 'bmi', label: 'BMI (Body Mass Index) | Normal Range: 18.5-24.9', type: 'number', step: '0.1', min: 0, max: 70, readonly: true },
-                    { name: 'glucose', label: 'Glucose Level (mg/dL) | Normal Range: 70-100 mg/dL', type: 'number', min: 0, max: 300 },
-                    { name: 'blood_pressure', label: 'Blood Pressure (mm Hg) | Normal Range: 90-120 mm Hg', type: 'number', min: 0, max: 200 },
-                    { name: 'age', label: 'Age (years) | Normal Range: 18-100 years', type: 'number', min: 1, max: 120 }
+                    { name: 'weight', label: 'Weight (kg)', type: 'number', min: 1, max: 300 },
+                    { name: 'height', label: 'Height (cm)', type: 'number', step: '1', min: 50, max: 250 },
+                    { name: 'bmi', label: 'BMI (auto-calculated)', type: 'number', step: '0.1', min: 0, max: 70, readonly: true },
+                    { name: 'glucose', label: 'Fasting Glucose (mg/dL) — Normal: 70-99', type: 'number', min: 0, max: 500 },
+                    { name: 'hba1c', label: 'HbA1c (%) — Normal: below 5.7 (optional)', type: 'number', step: '0.1', min: 0, max: 15 },
+                    { name: 'blood_pressure', label: 'Systolic Blood Pressure (mm Hg) — Normal: 90-120', type: 'number', min: 0, max: 250 },
+                    { name: 'insulin', label: 'Fasting Insulin (µIU/mL) — Normal: 2-25 (optional)', type: 'number', step: '0.1', min: 0, max: 900 },
+                    { name: 'skin_thickness', label: 'Skin Fold Thickness (mm) (optional)', type: 'number', min: 0, max: 100 },
+                    { name: 'age', label: 'Age (years)', type: 'number', min: 1, max: 120 },
+                    { name: 'family_history', label: 'Family History of Diabetes?', type: 'select', options: [{v:0,t:'No'},{v:1,t:'Yes'}] },
+                    { name: 'physical_activity', label: 'Physically Active? (exercise 3+ times/week)', type: 'select', options: [{v:1,t:'Yes'},{v:0,t:'No'}] }
                 ]
             },
             liver: {
@@ -275,8 +329,7 @@
                         inputHTML = `
                     <label for="${field.name}">${field.label}</label>
                     <select id="${field.name}" name="${field.name}" required>
-                        <option value="">Select...</option>
-                        ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        ${field.options.map(opt => `<option value="${opt.v}">${opt.t}</option>`).join('')}
                     </select>
                 `;
                     } else {
@@ -290,8 +343,8 @@
                         ${field.min !== undefined ? `min="${field.min}"` : ''}
                         ${field.max !== undefined ? `max="${field.max}"` : ''}
                         ${field.readonly ? 'readonly' : ''}
-                        required
-                        placeholder="Enter ${field.label.toLowerCase()}"
+                        ${field.label.includes('optional') ? '' : 'required'}
+                        placeholder="Enter ${field.label.split('—')[0].replace('(optional)','').trim().toLowerCase()}"
                     >
                 `;
                     }
@@ -353,7 +406,7 @@
             resultBox.innerHTML = `
         <div style="text-align: center;">
             <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(0, 102, 255, 0.1); border-top-color: #0066ff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 1rem; color: var(--gray-600);">Analyzing your data...</p>
+            <p style="margin-top: 1rem; color: var(--gray-600);">Running Hybrid AI Analysis (Clinical Rules + ML Model)...</p>
         </div>
     `;
 
@@ -381,35 +434,105 @@
                     let isBad = false;
                     const resStr = result.result.toLowerCase();
                     if (resStr.includes("diabetic") && !resStr.includes("non")) isBad = true;
+                    if (resStr.includes("prediabetic")) isBad = true;
                     if (resStr.includes("detected") || resStr.includes("disease")) isBad = true;
                     if (resStr.includes("malignant")) isBad = true;
 
                     // Safety check for negation
                     if (resStr.includes("no ") || resStr.includes("non-") || resStr.includes("benign")) isBad = false;
 
-                    const isPositive = isBad; // Positive for disease
+                    const isPositive = isBad;
+                    const isPrediabetic = resStr.includes("prediabetic");
                     const probability = result.confidence;
 
-                    resultBox.className = `result-box ${isPositive ? 'positive' : 'negative'}`;
-                    resultBox.innerHTML = `
-            <svg style="width: 60px; height: 60px; margin-bottom: 1rem;" viewBox="0 0 60 60" fill="none">
-                <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="3" fill="none"/>
-                ${!isPositive ?
-                            // Checkmark for Good/Negative Result
-                            '<path d="M20 30L27 37L40 23" stroke="currentColor" stroke-width="3" fill="none"/>' :
-                            // X or Alert for Bad/Positive Result
-                            '<path d="M30 18v12M30 38v2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'
+                    // Determine result color class
+                    let resultClass = isPositive ? 'positive' : 'negative';
+                    if (isPrediabetic) resultClass = 'prediabetic';
+                    
+                    resultBox.className = `result-box ${resultClass}`;
+
+                    // Check if this is a diabetes response with detailed breakdown
+                    if (disease === 'diabetes' && result.explanation) {
+                        const pb = result.parameter_breakdown || {};
+                        const explanations = result.explanation || [];
+                        const scores = result.scores || {};
+                        const riskLevel = result.risk_level || 'UNKNOWN';
+
+                        let riskColor = '#10b981';
+                        if (riskLevel === 'MODERATE') riskColor = '#f59e0b';
+                        else if (riskLevel === 'HIGH') riskColor = '#ef4444';
+                        else if (riskLevel === 'VERY HIGH') riskColor = '#dc2626';
+
+                        // Build explanation cards
+                        let explainHTML = explanations.map(e => `
+                            <div class="explain-card">
+                                <div class="explain-icon">${e.icon}</div>
+                                <div class="explain-body">
+                                    <div class="explain-title">${e.title}</div>
+                                    <div class="explain-text">${e.text}</div>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        // Build mini parameter pills
+                        let pillsHTML = '';
+                        const paramOrder = ['glucose','hba1c','bmi','blood_pressure','insulin','age','family_history','physical_activity'];
+                        const paramLabels = {glucose:'Glucose',hba1c:'HbA1c',bmi:'BMI',blood_pressure:'BP',insulin:'Insulin',age:'Age',skin_thickness:'Skin Fold',family_history:'Family History',physical_activity:'Activity'};
+                        const paramIcons = {glucose:'🩸',hba1c:'📊',bmi:'⚖️',blood_pressure:'💓',insulin:'💉',age:'📅',skin_thickness:'📏',family_history:'👨‍👩‍👧',physical_activity:'🏃'};
+                        
+                        for (const key of paramOrder) {
+                            if (!pb[key]) continue;
+                            const p = pb[key];
+                            const val = p.value;
+                            const unit = p.unit || '';
+                            const status = p.status || '';
+                            const rs = p.risk_score || 0;
+                            let pillColor = rs < 20 ? '#10b981' : rs < 50 ? '#f59e0b' : '#ef4444';
+                            pillsHTML += `
+                                <div class="param-pill">
+                                    <span class="pill-icon">${paramIcons[key]||'📋'}</span>
+                                    <span class="pill-label">${paramLabels[key]||key}</span>
+                                    <span class="pill-val">${val} ${unit}</span>
+                                    ${status ? `<span class="pill-status" style="color:${pillColor}">${status}</span>` : ''}
+                                    <div class="pill-bar"><div class="pill-fill" style="width:${rs}%;background:${pillColor}"></div></div>
+                                </div>`;
                         }
-            </svg>
-            <h3 class="result-title">${result.result}</h3>
-            <p class="result-probability">Confidence Level: ${probability}%</p>
-            <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.95rem;">
-                ${isPositive ?
-                            'Please consult with a healthcare professional for further evaluation and diagnosis.' :
-                            'Your results indicate low risk, but regular health monitoring is recommended.'
-                        }
-            </p>
-        `;
+
+                        resultBox.innerHTML = `
+                            <div class="clinical-result-v2">
+                                <div class="result-hero ${resultClass}">
+                                    <div class="result-verdict">${result.result}</div>
+                                    <div class="result-conf">${probability}% confidence</div>
+                                    <div class="risk-pill" style="background:${riskColor}20;color:${riskColor};border:1px solid ${riskColor}40">${riskLevel} RISK</div>
+                                </div>
+
+                                <div class="section-title">How We Determined This</div>
+                                <div class="explain-list">${explainHTML}</div>
+
+                                <div class="section-title">Your Numbers at a Glance</div>
+                                <div class="pills-grid">${pillsHTML}</div>
+
+                                <div class="scores-row">
+                                    <div class="score-chip"><span class="sc-label">Clinical</span><span class="sc-val">${scores.clinical}%</span></div>
+                                    <div class="score-chip"><span class="sc-label">ML Model</span><span class="sc-val">${scores.ml_model}%</span></div>
+                                    <div class="score-chip highlight"><span class="sc-label">Final</span><span class="sc-val">${scores.hybrid}%</span></div>
+                                </div>
+
+                                <div class="disclaimer-v2">⚕️ This is an AI screening tool, not a medical diagnosis. A proper diagnosis requires two separate lab tests confirming the same result. Always consult a doctor.</div>
+                            </div>`;
+                    } else {
+                        // Generic result for non-diabetes
+                        resultBox.innerHTML = `
+                            <svg style="width:60px;height:60px;margin-bottom:1rem" viewBox="0 0 60 60" fill="none">
+                                <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="3" fill="none"/>
+                                ${!isPositive ? '<path d="M20 30L27 37L40 23" stroke="currentColor" stroke-width="3" fill="none"/>' : '<path d="M30 18v12M30 38v2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'}
+                            </svg>
+                            <h3 class="result-title">${result.result}</h3>
+                            <p class="result-probability">Confidence Level: ${probability}%</p>
+                            <p style="margin-top:1rem;color:var(--gray-600);font-size:0.95rem">
+                                ${isPositive ? 'Please consult with a healthcare professional for further evaluation.' : 'Your results indicate low risk. Regular monitoring recommended.'}
+                            </p>`;
+                    }
                 })
                 .catch(err => {
                     console.error(err);
