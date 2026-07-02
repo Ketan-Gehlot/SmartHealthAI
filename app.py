@@ -43,10 +43,12 @@ with open(os.path.join(AUTOML_DIR, "liver_automl.pkl"), "rb") as f:
         liver_model = liver_data["model"]
         liver_scaler = liver_data.get("scaler")
         liver_features = liver_data.get("features", [])
+        liver_explainer = liver_data.get("explainer", None)
     else:
         liver_model = liver_data
         liver_scaler = None
         liver_features = []
+        liver_explainer = None
 
 # CNN_MODEL_PATH = os.path.join("models", "cnn_models", "breast_cancer_cnn.h5")
 # cancer_cnn_model = load_model(CNN_MODEL_PATH)
@@ -193,12 +195,7 @@ def predict_diabetes():
 def predict_liver():
     data = request.json
 
-    # Features based on pickle inspection: ['alt', 'ast', 'alp', 'albumin', 'total_protein', 'total_bilirubin', 'direct_bilirubin', 'age']
-    # Note: Order must match exactly what the model expects.
-    # Assuming the inspection order is the correct feature order.
-    # Inspect order: alt, ast, alp, albumin, total_protein, total_bilirubin, direct_bilirubin, age
-    
-    features = np.array([[  
+    features_list = [
         float(data.get("alt", 0)),
         float(data.get("ast", 0)),
         float(data.get("alp", 0)),
@@ -207,35 +204,14 @@ def predict_liver():
         float(data.get("total_bilirubin", 0)),
         float(data.get("direct_bilirubin", 0)),
         float(data.get("age", 0))
-    ]])
-
-    # -------------------------------------------------------------------------
-    # HYBRID AI LOGIC: Medical Guidelines Rule-Based Check
-    # If all parameters are strictly within normal ranges, we default to Healthy.
-    # This acts as a safety layer over the ML model to prevent false positives.
-    # -------------------------------------------------------------------------
+    ]
+    features = np.array([features_list])
     
-    # Values from User Input
-    v_alt = float(data.get("alt", 0))
-    v_ast = float(data.get("ast", 0))
-    v_alp = float(data.get("alp", 0))
-    v_albumin = float(data.get("albumin", 0))
-    v_total_protein = float(data.get("total_protein", 0))
-    v_total_bilirubin = float(data.get("total_bilirubin", 0))
-    v_direct_bilirubin = float(data.get("direct_bilirubin", 0))
+    v_alt, v_ast, v_alp, v_albumin, v_total_protein, v_total_bilirubin, v_direct_bilirubin, _ = features_list
 
-    # Normal Ranges (Standard Medical Data)
-    # Total Bilirubin: 0.1 - 1.2
-    # Direct Bilirubin: 0.1 - 0.4
-    # ALP: 40 - 150
-    # ALT: 7 - 56
-    # AST: 10 - 45
-    # Total Protein: 6.0 - 8.3
-    # Albumin: 3.5 - 5.5
-    
     is_normal = True
     if not (0.1 <= v_total_bilirubin <= 1.5): is_normal = False
-    if not (0.0 <= v_direct_bilirubin <= 0.6): is_normal = False # Extended slightly
+    if not (0.0 <= v_direct_bilirubin <= 0.6): is_normal = False 
     if not (0 <= v_alp <= 160): is_normal = False
     if not (0 <= v_alt <= 60): is_normal = False
     if not (0 <= v_ast <= 60): is_normal = False
@@ -245,9 +221,8 @@ def predict_liver():
     print(f"[DEBUG] Medical Rule Check: All Normal? {is_normal}")
 
     if is_normal:
-        # Override Model
         result = "No Liver Disease"
-        probability = 15.5 # Low risk score
+        probability = 15.5
         save_prediction("Liver Disease", result, probability)
         return jsonify({
             "disease": "Liver Disease",
@@ -255,27 +230,53 @@ def predict_liver():
             "confidence": probability
         })
 
-    # If not normal, ask the AI Model
-    if liver_scaler:
-        features = liver_scaler.transform(features)
+    scaled_features = liver_scaler.transform(features) if liver_scaler else features
+    probability = liver_model.predict_proba(scaled_features)[0][1]
 
-    probability = liver_model.predict_proba(features)[0][1]
-
-    # Adjusted threshold for cleaner user experience
-    # The AutoML model is highly sensitive, so we only flag disease if confidence is > 90%
-    if probability > 0.9:
-        prediction = 1
+    # Lower threshold for better sensitivity
+    if probability >= 0.45:
         result = "Liver Disease Detected"
+        risk_level = "HIGH RISK"
     else:
-        prediction = 0
         result = "No Liver Disease"
+        risk_level = "LOW RISK"
     
-    save_prediction("Liver Disease", result, float(probability) * 100)
+    prob_percentage = round(float(probability) * 100, 2)
+    save_prediction("Liver Disease", result, prob_percentage)
+
+    # SHAP Explanation
+    explanation = []
+    if liver_explainer:
+        shap_values = liver_explainer.shap_values(scaled_features)
+        # TreeExplainer on RandomForestClassifier returns list of arrays [class 0, class 1] or a 3D array (samples, features, classes)
+        if isinstance(shap_values, list) and len(shap_values) > 1:
+            shap_values = shap_values[1][0]
+        elif hasattr(shap_values, "ndim") and shap_values.ndim == 3:
+            shap_values = shap_values[0, :, 1]
+        else:
+            shap_values = shap_values[0] # Fallback
+        
+        feature_names = ['ALT', 'AST', 'ALP', 'Albumin', 'Total Protein', 'Total Bilirubin', 'Direct Bilirubin', 'Age']
+        impacts = []
+        for i, val in enumerate(shap_values):
+            impacts.append({"name": feature_names[i], "value": val, "abs_val": abs(val)})
+            
+        impacts = sorted(impacts, key=lambda x: x["abs_val"], reverse=True)
+        
+        for feat in impacts[:3]:
+            direction = "increased" if feat["value"] > 0 else "decreased"
+            explanation.append({
+                "title": f"Impact of {feat['name']}",
+                "text": f"Your {feat['name']} level {direction} the model's risk score.",
+                "icon": "⚠️" if feat["value"] > 0 else "✅"
+            })
 
     return jsonify({
         "disease": "Liver Disease",
         "result": result,
-        "confidence": round(float(probability) * 100, 2)
+        "confidence": prob_percentage,
+        "risk_level": risk_level,
+        "explanation": explanation
     })
 
 @app.route("/api/predict/breast_cancer", methods=["POST"])
@@ -319,31 +320,15 @@ def liver_predict():
 
     if request.method == "POST":
         input_data = []
-
-        # flexible feature gathering
         for feature in liver_features:
             val = request.form.get(feature)
             if val:
                 input_data.append(float(val))
             else:
-                input_data.append(0.0) # Fallback
+                input_data.append(0.0)
 
         input_array = np.array(input_data).reshape(1, -1)
-
-        # -------------------------------------------------------------
-        # HYBRID AI LOGIC (Same as API)
-        # -------------------------------------------------------------
-        # Map input_data indices to features:
-        # alt(0), ast(1), alp(2), albumin(3), total_protein(4), 
-        # total_bilirubin(5), direct_bilirubin(6), age(7)
-        v_alt = input_data[0]
-        v_ast = input_data[1]
-        v_alp = input_data[2]
-        v_albumin = input_data[3]
-        v_total_protein = input_data[4]
-        v_total_bilirubin = input_data[5]
-        v_direct_bilirubin = input_data[6]
-
+        v_alt, v_ast, v_alp, v_albumin, v_total_protein, v_total_bilirubin, v_direct_bilirubin, _ = input_data
         is_normal = True
         if not (0.1 <= v_total_bilirubin <= 1.5): is_normal = False
         if not (0.0 <= v_direct_bilirubin <= 0.6): is_normal = False 
@@ -355,24 +340,45 @@ def liver_predict():
 
         if is_normal:
              prediction = "NO LIVER DISEASE ✅"
-             probability = 12.5 # Low risk
+             probability = 15.5
+             explanation = []
         else:
              if liver_scaler:
                 input_array = liver_scaler.transform(input_array)
 
              prob = liver_model.predict_proba(input_array)[0][1]
 
-             # Adjusted threshold for cleaner user experience
-             if prob > 0.9:
-                 pred = 1
+             if prob >= 0.45:
                  prediction = "LIVER DISEASE DETECTED ⚠️"
              else:
-                 pred = 0
                  prediction = "NO LIVER DISEASE ✅"
             
              probability = round(prob * 100, 2)
+             
+             explanation = []
+             if liver_explainer:
+                 shap_values = liver_explainer.shap_values(input_array)
+                 if isinstance(shap_values, list) and len(shap_values) > 1:
+                     shap_values = shap_values[1][0]
+                 elif hasattr(shap_values, "ndim") and shap_values.ndim == 3:
+                     shap_values = shap_values[0, :, 1]
+                 else:
+                     shap_values = shap_values[0]
+                 
+                 feature_names = ['ALT', 'AST', 'ALP', 'Albumin', 'Total Protein', 'Total Bilirubin', 'Direct Bilirubin', 'Age']
+                 impacts = []
+                 for i, val in enumerate(shap_values):
+                     impacts.append({"name": feature_names[i], "value": val, "abs_val": abs(val)})
+                     
+                 impacts = sorted(impacts, key=lambda x: x["abs_val"], reverse=True)
+                 for feat in impacts[:3]:
+                     direction = "increased" if feat["value"] > 0 else "decreased"
+                     explanation.append({
+                         "title": f"Impact of {feat['name']}",
+                         "text": f"Your {feat['name']} level {direction} the model's risk score.",
+                         "icon": "⚠️" if feat["value"] > 0 else "✅"
+                     })
 
-        # Save to Database for Dashboard
         save_result_text = "Liver Disease Detected" if "DETECTED" in prediction else "No Liver Disease"
         save_prediction("Liver Disease", save_result_text, probability)
 
@@ -380,7 +386,8 @@ def liver_predict():
         "liver.html",
         features=liver_features,
         prediction=prediction,
-        probability=probability
+        probability=probability,
+        explanation=explanation if 'explanation' in locals() else []
     )
 
 if __name__ == "__main__":

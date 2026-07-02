@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -252,6 +250,23 @@
                 </p>
             </div>
 
+            {% if explanation %}
+            <div class="result-explanation" style="margin: 2rem 0; text-align: left;">
+                <h3 style="margin-bottom: 1rem; font-family: var(--font-display); font-size: 1.25rem;">How We Determined This</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    {% for item in explanation %}
+                    <div style="background: white; padding: 1rem; border-radius: 12px; border: 1px solid var(--gray-200); display: flex; gap: 1rem; align-items: flex-start;">
+                        <span style="font-size: 1.5rem; line-height: 1;">{{ item.icon }}</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 0.25rem; color: var(--gray-900);">{{ item.title }}</strong>
+                            <p style="color: var(--gray-600); font-size: 0.95rem; margin: 0;">{{ item.text }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <div class="result-actions">
                 <a href="/dashboard" class="btn btn-secondary">
                     <span>View Dashboard</span>
@@ -259,9 +274,9 @@
                         <path d="M5 10h10M10 5l5 5-5 5" />
                     </svg>
                 </a>
-                <button onclick="window.location.reload()" class="btn btn-secondary">
+                <a href="/liver" class="btn btn-secondary">
                     <span>New Prediction</span>
-                </button>
+                </a>
             </div>
         </div>
         {% endif %}

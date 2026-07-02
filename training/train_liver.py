@@ -7,7 +7,7 @@ import os
 import pandas as pd
 import numpy as np
 import pickle
-
+import shap
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, roc_auc_score
@@ -167,13 +167,12 @@ X_test_scaled = scaler.transform(X_test)
 print("\n[INFO] Building ensemble model (Random Forest + XGBoost)...")
 
 # Calculate Class Weights strategy
-# 1 (Disease) vs 0 (No Disease)
-# The model is heavily biased towards 1. We will force it to pay attention to 0.
-# Aggressive manual weighting:
-rf_weights = {0: 5, 1: 1} # Treat class 0 (Healthy) as 5x more important
-xgb_scale_pos_weight = 0.2 # Downweight class 1 (Disease) by 5x (approx 1/5)
+# We want a balanced accurate model.
+rf_weights = "balanced" 
+# XGB scale_pos_weight = count(negative)/count(positive)
+xgb_scale_pos_weight = float(np.sum(y_train == 0)) / float(np.sum(y_train == 1))
 
-print(f"[INFO] Applied Manual Weights: RF={rf_weights}, XGB_scale_pos={xgb_scale_pos_weight}")
+print(f"[INFO] Applied Balanced Weights: RF={rf_weights}, XGB_scale_pos={xgb_scale_pos_weight}")
 
 # Define individual models with balancing
 rf = RandomForestClassifier(
@@ -218,10 +217,15 @@ print("[INFO] Ensemble metrics:", metrics)
 # SAVE MODEL
 # ============================================================
 
+# Create SHAP Explainer using the Random Forest part of the ensemble
+fitted_rf = ensemble.named_estimators_['rf']
+explainer = shap.TreeExplainer(fitted_rf)
+
 final_model = {
     "model": ensemble,
     "scaler": scaler,
-    "features": FEATURES
+    "features": FEATURES,
+    "explainer": explainer
 }
 
 with open(MODEL_PATH, "wb") as f:

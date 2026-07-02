@@ -65,8 +65,8 @@
     --spacing-3xl: 4rem;
     
     /* Typography */
-    --font-display: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
     
     /* Transitions */
     --transition-fast: 150ms ease;
